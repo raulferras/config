@@ -59,8 +59,12 @@ abstract class AbstractConfig implements ArrayAccess, ConfigInterface
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get($key = null, $default = null)
     {
+        if ($key === null) {
+            return $this->data;
+        }
+
         // Check if already cached
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
