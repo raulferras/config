@@ -37,10 +37,11 @@ class Config extends AbstractConfig
      *
      * @return Config
      */
+    /*
     public static function load($path)
     {
         return new static($path);
-    }
+    }*/
 
     /**
      * Loads a supported configuration file format.
@@ -49,23 +50,57 @@ class Config extends AbstractConfig
      *
      * @throws EmptyDirectoryException    If `$path` is an empty directory
      */
-    public function __construct($path)
+    public function __construct($path = null)
     {
-        $paths      = $this->getValidPath($path);
         $this->data = array();
-
-        foreach ($paths as $path) {
-
-            // Get file information
-            $info      = pathinfo($path);
-            $extension = isset($info['extension']) ? $info['extension'] : '';
-            $parser    = $this->getParser($extension);
-
-            // Try and load file
-            $this->data = array_replace_recursive($this->data, $parser->parse($path));
+        if (null !== $path) {
+            $this->load($path);
         }
+    }
 
-        parent::__construct($this->data);
+    /**
+     * Loads a new file/files.
+     * Data already loaded is merged with the new one.
+     *
+     * @param string $path
+     * @param boolean $merge
+     */
+    public function load($path, $merge = true)
+    {
+        try {
+            $paths = $this->getValidPath($path);
+            $tempData = array();
+            foreach ($paths as $path) {
+
+                // Get file information
+                $info      = pathinfo($path);
+                $extension = isset($info['extension']) ? $info['extension'] : '';
+                $parser    = $this->getParser($extension);
+
+                // Try and load file
+
+                $tempData = array_replace_recursive($tempData, $parser->parse($path));
+            }
+
+            if ($merge) {
+                $this->data = array_replace_recursive($this->data, $tempData);
+            }
+
+            parent::__construct($this->data);
+        }
+        catch (\Exception $e) {
+
+        }
+    }
+
+    /**
+     * Alias for $load($path,false);
+     *
+     * @param $path
+     */
+    public function loadAndReset($path)
+    {
+        $this->load($path, $merge=false);
     }
 
     /**
